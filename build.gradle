@@ -1,0 +1,146 @@
+import com.diffplug.spotless.LineEnding
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+plugins {
+    id 'java'
+    id 'java-library'
+    id 'org.springframework.boot' version '3.1.2'
+    id 'io.spring.dependency-management' version "1.1.2"
+    id 'com.diffplug.spotless' version "6.20.0"
+    id 'me.champeau.jmh' version "0.7.1"
+}
+
+group = 'cn.gov.yrcc'
+description = 'yrcc-geoserver'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    maven {
+        url = uri('http://192.168.1.20:8181/repository/maven-public/')
+        allowInsecureProtocol = true
+    }
+    maven {
+        url = uri('http://maven.geo-solutions.it/')
+        allowInsecureProtocol = true
+    }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    mavenCentral()
+    mavenLocal()
+    gradlePluginPortal()
+}
+
+tasks.withType(JavaCompile).tap {
+    configureEach {
+        options.encoding("utf-8")
+    }
+}
+
+sourceCompatibility = JavaVersion.VERSION_17
+targetCompatibility = JavaVersion.VERSION_17
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+
+    test {
+        java {
+            srcDirs = ['src/test/java', 'src/test/jmh']
+        }
+    }
+}
+
+ext {
+    protocolVersion = '1.1-SNAPSHOT'
+    protobufVersion = '3.24.0-RC3'
+    jmhVersion = '1.37'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom(SpringBootPlugin.BOM_COORDINATES)
+    }
+
+    dependencies {
+        dependency "org.projectlombok:lombok:1.18.28"
+        dependency "com.google.guava:guava:32.1.2-jre"
+        dependency "org.apache.commons:commons-lang3:3.13.0"
+        dependency "javax.servlet:javax.servlet-api:4.0.1"
+        dependency "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0"
+        dependency "jakarta.servlet:jakarta.servlet-api:5.0.0"
+        dependency "org.openjdk.jmh:jmh-core:${jmhVersion}"
+        dependency "org.openjdk.jmh:jmh-generator-annprocess:${jmhVersion}"
+        dependency "it.geosolutions:geoserver-manager:1.7.0"
+        dependency "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.2"
+        dependency "org.apache.httpcomponents:httpclient:4.5.14"
+    }
+}
+
+dependencies {
+    implementation(
+            'com.google.guava:guava',
+            'org.apache.commons:commons-lang3',
+            'org.springdoc:springdoc-openapi-starter-webmvc-ui',
+            'org.springframework.boot:spring-boot-starter-aop',
+            'org.springframework.boot:spring-boot-starter-jetty',
+            'jakarta.servlet:jakarta.servlet-api',
+            'org.springframework.boot:spring-boot-starter-validation',
+            'org.openjdk.jmh:jmh-core',
+            'org.openjdk.jmh:jmh-generator-annprocess',
+            'it.geosolutions:geoserver-manager',
+            'com.fasterxml.jackson.dataformat:jackson-dataformat-xml',
+            'org.apache.httpcomponents:httpclient'
+    )
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
+    }
+    annotationProcessor 'org.openjdk.jmh:jmh-generator-annprocess'
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testImplementation platform('org.junit:junit-bom:5.9.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+}
+
+jar {
+    enabled = false
+}
+bootJar {
+    enabled = true
+    manifest {
+        attributes 'Start-Class': 'cn.gov.yrcc.Application'
+    }
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+        removeUnusedImports()
+        indentWithTabs()
+        trimTrailingWhitespace()
+        endWithNewline()
+        lineEndings(LineEnding.UNIX)
+        licenseHeaderFile rootProject.file('src/main/resources/license-header.txt')
+    }
+    format 'misc', {
+        // define the files to apply `misc` to
+        target '*.gradle', '*.md', '.gitignore'
+
+        // define the steps to apply to those files
+        trimTrailingWhitespace()
+        indentWithTabs() // or spaces. Takes an integer argument if you don't like 4
+        endWithNewline()
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
