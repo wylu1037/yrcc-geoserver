@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,5 +53,17 @@ public class WorkspaceController {
             @PathVariable("page") Integer page,
             @PathVariable("size") Integer size) {
         return BaseResult.success(workspaceService.pages(page, size));
+    }
+
+    @PutMapping("workspace/enable")
+    public BaseResult<Void> enableDelivery(@RequestParam("workspaceName") String workspaceName) {
+        workspaceService.enable(workspaceName);
+        return BaseResult.success();
+    }
+
+    @PutMapping("workspace/disable")
+    public BaseResult<Void> disableDelivery(@RequestParam("workspaceName") String workspaceName) {
+        workspaceService.disable(workspaceName);
+        return BaseResult.success();
     }
 }

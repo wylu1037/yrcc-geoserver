@@ -54,7 +54,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
         String body = JsonUtils.toJsonString(ImmutableMap.of("workspace", ImmutableMap.of("name", request.getName())));
         httpUtils.post(geoServerURLManager.createWorkspace(), body, geoServerURLManager.getBasicAuth(), HttpStatus.SC_CREATED);
 
-        return workspaceRepository.create(Workspace.builder()
+        return workspaceRepository.save(Workspace.builder()
                 .name(request.getName())
                 .enable(request.isEnable())
                 .createdAt(new Date())
@@ -66,7 +66,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     public void delete(String workspaceName) {
         Boolean exists = this.exists(workspaceName);
         if (!exists) {
-            throw new BusinessException(GSErrorMessage.Workspace.ALREADY_EXISTS);
+            throw new BusinessException(GSErrorMessage.Workspace.NOT_EXISTS);
         }
         httpUtils.delete(geoServerURLManager.deleteWorkspace(workspaceName), geoServerURLManager.getBasicAuth(), HttpStatus.SC_OK);
         Workspace workspace = workspaceRepository.findByName(workspaceName);
@@ -76,5 +76,27 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     @Override
     public Page<Workspace> pages(int page, int size) {
         return workspaceRepository.pages(page, size);
+    }
+
+    @Override
+    public void enable(String workspaceName) {
+        Boolean exists = this.exists(workspaceName);
+        if (!exists) {
+            throw new BusinessException(GSErrorMessage.Workspace.NOT_EXISTS);
+        }
+        Workspace workspace = workspaceRepository.findByName(workspaceName);
+        workspace.setEnable(true);
+        workspaceRepository.save(workspace);
+    }
+
+    @Override
+    public void disable(String workspaceName) {
+        Boolean exists = this.exists(workspaceName);
+        if (!exists) {
+            throw new BusinessException(GSErrorMessage.Workspace.NOT_EXISTS);
+        }
+        Workspace workspace = workspaceRepository.findByName(workspaceName);
+        workspace.setEnable(false);
+        workspaceRepository.save(workspace);
     }
 }

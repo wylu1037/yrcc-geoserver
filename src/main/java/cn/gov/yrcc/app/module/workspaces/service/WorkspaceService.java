@@ -17,4 +17,8 @@ public interface WorkspaceService {
     void delete(String workspaceName);
 
     Page<Workspace> pages(int page, int size);
+
+    void enable(String workspaceName);
+
+    void disable(String workspaceName);
 }

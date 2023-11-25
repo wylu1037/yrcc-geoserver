@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 
 public interface WorkspaceRepository {
 
-    Long create(Workspace workspace);
+    Long save(Workspace workspace);
 
     void delete(Workspace workspace);
 
