@@ -56,8 +56,6 @@ sourceSets {
 }
 
 ext {
-    protocolVersion = '1.1-SNAPSHOT'
-    protobufVersion = '3.24.0-RC3'
     jmhVersion = '1.37'
 }
 
@@ -78,6 +76,9 @@ dependencyManagement {
         dependency "it.geosolutions:geoserver-manager:1.7.0"
         dependency "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.2"
         dependency "org.apache.httpcomponents:httpclient:4.5.14"
+        dependency "mysql:mysql-connector-java:8.0.33"
+        dependency "org.liquibase:liquibase-core:4.25.0"
+        dependency "com.alibaba:druid-spring-boot-starter:1.2.20"
     }
 }
 
@@ -88,13 +89,16 @@ dependencies {
             'org.springdoc:springdoc-openapi-starter-webmvc-ui',
             'org.springframework.boot:spring-boot-starter-aop',
             'org.springframework.boot:spring-boot-starter-jetty',
+            'org.springframework.boot:spring-boot-starter-data-jpa',
             'jakarta.servlet:jakarta.servlet-api',
             'org.springframework.boot:spring-boot-starter-validation',
             'org.openjdk.jmh:jmh-core',
             'org.openjdk.jmh:jmh-generator-annprocess',
             'it.geosolutions:geoserver-manager',
             'com.fasterxml.jackson.dataformat:jackson-dataformat-xml',
-            'org.apache.httpcomponents:httpclient'
+            'org.apache.httpcomponents:httpclient',
+            'mysql:mysql-connector-java',
+            'com.alibaba:druid-spring-boot-starter',
     )
     implementation('org.springframework.boot:spring-boot-starter-web') {
         exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'

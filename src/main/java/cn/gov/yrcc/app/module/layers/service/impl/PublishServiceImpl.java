@@ -2,6 +2,7 @@ package cn.gov.yrcc.app.module.layers.service.impl;
 
 import cn.gov.yrcc.app.module.layers.request.PublishTifRequest;
 import cn.gov.yrcc.app.module.layers.service.PublishService;
+import cn.gov.yrcc.internal.error.BusinessException;
 import com.google.common.base.Throwables;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ public class PublishServiceImpl implements PublishService {
         } catch (IOException e) {
             log.error("[PublishServiceImpl] publishTif() called with Params: request = {}, Error message = {}",
                     request, Throwables.getStackTraceAsString(e));
-            throw new RuntimeException("文件读取异常");
+            throw new BusinessException("文件读取异常");
         }
         return success;
     }

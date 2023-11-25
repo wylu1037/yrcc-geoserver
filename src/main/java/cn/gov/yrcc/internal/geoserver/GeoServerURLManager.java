@@ -12,11 +12,15 @@ public class GeoServerURLManager {
         this.gsProperties = gsProperties;
     }
 
+    public Pair<String, String> getBasicAuth() {
+        return Pair.of(gsProperties.getUsername(), gsProperties.getPassword());
+    }
+
     public String getLegendGraphic(String workspace, String layerName) {
         return String.format("%s/%s/wms?service=WMS&version=1.1.1&request=GetLegendGraphic&layer=%s&format=image/png", gsProperties.getUrl(), workspace, layerName);
     }
 
-    public Pair<String, String> getBasicAuth() {
-        return Pair.of(gsProperties.getUsername(), gsProperties.getPassword());
+    public String retrieveDatastore(String workspace, String datastoreName) {
+        return String.format("%s/rest/workspaces/%s/datastores/%s", gsProperties.getUrl(), workspace, datastoreName);
     }
 }

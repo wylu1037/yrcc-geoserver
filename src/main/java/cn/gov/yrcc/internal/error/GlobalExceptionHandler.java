@@ -29,40 +29,46 @@ import java.util.StringJoiner;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	@ExceptionHandler(value = MethodArgumentNotValidException.class)
-	public BaseResult<Object> jakartaValidationExceptionCapture(MethodArgumentNotValidException e) {
-		var bindingResult = e.getBindingResult();
-		var errorMessages = new StringJoiner("; ");
-		if (bindingResult.hasErrors()) {
-			var errors = bindingResult.getAllErrors();
-			if (!errors.isEmpty()) {
-				errors.forEach(error -> errorMessages.add(error.getDefaultMessage()));
-				return BaseResult.error(HttpStatus.BAD_REQUEST.value(), errorMessages.toString());
-			}
-		}
-		return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-	}
+    @ExceptionHandler(value = MethodArgumentNotValidException.class)
+    public BaseResult<Object> jakartaValidationExceptionCapture(MethodArgumentNotValidException e) {
+        var bindingResult = e.getBindingResult();
+        var errorMessages = new StringJoiner("; ");
+        if (bindingResult.hasErrors()) {
+            var errors = bindingResult.getAllErrors();
+            if (!errors.isEmpty()) {
+                errors.forEach(error -> errorMessages.add(error.getDefaultMessage()));
+                return BaseResult.error(HttpStatus.BAD_REQUEST.value(), errorMessages.toString());
+            }
+        }
+        return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    }
 
-	@ExceptionHandler(value = ConstraintViolationException.class)
-	public BaseResult<Object> constraintViolationExceptionCapture(ConstraintViolationException e) {
-		var violations = e.getConstraintViolations();
-		var errorMessages = new StringJoiner("; ");
-		if (!violations.isEmpty()) {
-			for (var violation : violations) {
-				errorMessages.add(violation.getMessage());
-			}
-			return BaseResult.error(HttpStatus.BAD_REQUEST.value(), errorMessages.toString());
-		}
-		return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-	}
+    @ExceptionHandler(value = ConstraintViolationException.class)
+    public BaseResult<Object> constraintViolationExceptionCapture(ConstraintViolationException e) {
+        var violations = e.getConstraintViolations();
+        var errorMessages = new StringJoiner("; ");
+        if (!violations.isEmpty()) {
+            for (var violation : violations) {
+                errorMessages.add(violation.getMessage());
+            }
+            return BaseResult.error(HttpStatus.BAD_REQUEST.value(), errorMessages.toString());
+        }
+        return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    }
 
-	@ExceptionHandler(value = Exception.class)
-	public BaseResult<Object> exceptionCapture(Exception e) {
-		return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-	}
+    /**
+     * 自定义业务异常
+     *
+     * @param e exception
+     * @return BaseResult
+     */
+    @ExceptionHandler(value = BusinessException.class)
+    public BaseResult<Object> businessExceptionCapture(Exception e) {
+        return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    }
 
-	@ExceptionHandler(value = Throwable.class)
-	public BaseResult<Object> throwableCapture(Throwable e) {
-		return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
-	}
+    @ExceptionHandler(value = Throwable.class)
+    public BaseResult<Object> throwableCapture(Throwable e) {
+        return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
+    }
 }

@@ -1,6 +1,7 @@
 package cn.gov.yrcc.app.module.wms.service.impl;
 
 import cn.gov.yrcc.app.module.wms.service.WmsStoresService;
+import cn.gov.yrcc.internal.error.BusinessException;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import it.geosolutions.geoserver.rest.decoder.RESTWmsStoreList;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ public class WmsStoresServiceImpl implements WmsStoresService {
     public RESTWmsStoreList getWmsStoresDelivery(String workspace) {
         boolean exists = geoServerRESTReader.existsWorkspace(workspace);
         if (!exists) {
-            throw new RuntimeException(String.format("工作空间%s不存在", workspace));
+            throw new BusinessException(String.format("工作空间%s不存在", workspace));
         }
         return geoServerRESTReader.getWmsStores(workspace);
     }
