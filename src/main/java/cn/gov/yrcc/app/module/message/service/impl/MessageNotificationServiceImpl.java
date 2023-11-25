@@ -19,4 +19,11 @@ public class MessageNotificationServiceImpl implements MessageNotificationServic
     public Page<MessageNotification> pages(Long userId, Integer page, Integer size) {
         return messageNotificationRepository.pages(userId, page, size);
     }
+
+    @Override
+    public void read(Long id) {
+        MessageNotification messageNotification = messageNotificationRepository.findById(id);
+        messageNotification.setRead(true);
+        messageNotificationRepository.save(messageNotification);
+    }
 }

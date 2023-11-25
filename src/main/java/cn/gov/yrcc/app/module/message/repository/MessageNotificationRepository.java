@@ -10,4 +10,6 @@ public interface MessageNotificationRepository {
     Long save(MessageNotification messageNotification);
 
     void update(MessageNotification messageNotification);
+
+    MessageNotification findById(Long id);
 }
