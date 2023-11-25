@@ -1,8 +1,8 @@
 package cn.gov.yrcc.utils.http;
 
+import cn.gov.yrcc.internal.error.BusinessException;
 import cn.gov.yrcc.utils.json.JsonUtils;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.HttpEntity;
@@ -10,6 +10,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
@@ -130,7 +131,7 @@ public class HttpUtils {
      */
     public String post(String url, String body, Map<String, String> headers) {
         try {
-            return innerPost(url, body, headers);
+            return innerPost(url, body, headers, null, null);
         } catch (IOException e) {
             log.error("[HttpUtils] post() called with Params: url = {}, body = {}, headers = {}, Error message = {}",
                     url, body, headers, Throwables.getStackTraceAsString(e));
@@ -141,17 +142,19 @@ public class HttpUtils {
     /**
      * 发送post请求
      *
-     * @param url     URL
-     * @param body    request body
+     * @param url  URL
+     * @param body request body
      * @return string response
      * @throws IOException IOException
      */
-    public String post(String url, String body, String signature) {
+    public String post(String url, String body, Pair<String, String> basicAuth, Integer expectedCode) {
         try {
-            return innerPost(url, body, ImmutableMap.of("Content-Type", "application/json;charset=UTF-8", "signature", signature));
+            HashMap<String, String> headers = new HashMap<>();
+            headers.put("Content-Type", "application/json;charset=UTF-8");
+            return innerPost(url, body, headers, basicAuth, expectedCode);
         } catch (IOException e) {
-            log.error("[HttpUtils] post() called with Params: url = {}, body = {}, signature = {}, Error message = {}",
-                    url, body, signature, Throwables.getStackTraceAsString(e));
+            log.error("[HttpUtils] post() called with Params: url = {}, body = {}, Error message = {}",
+                    url, body, Throwables.getStackTraceAsString(e));
             throw new RuntimeException("发送POST请求异常：IOException");
         }
     }
@@ -165,21 +168,30 @@ public class HttpUtils {
      * @return string response
      * @throws IOException IOException
      */
-    public String innerPost(String url, String body, Map<String, String> headers) throws IOException {
+    public String innerPost(String url, String body, Map<String, String> headers, Pair<String, String> basicAuth, Integer expectedCode) throws IOException {
+        if (expectedCode == null) {
+            expectedCode = HttpStatus.SC_OK;
+        }
         try (CloseableHttpClient http = httpClientBuilder.build()) {
             HttpPost httpPost = new HttpPost(url);
             httpPost.setEntity(new StringEntity(Objects.requireNonNull(body), ContentType.APPLICATION_JSON));
+            if (basicAuth != null) {
+                headers.put("Authorization", "Basic " + Base64.getUrlEncoder().encodeToString((basicAuth.getLeft() + ":" + basicAuth.getRight()).getBytes(StandardCharsets.UTF_8)));
+            }
             if (headers != null && !headers.isEmpty()) {
                 headers.forEach(httpPost::setHeader);
             }
             try (CloseableHttpResponse response = http.execute(httpPost)) {
                 int status = response.getStatusLine().getStatusCode();
-                if (status != HttpStatus.SC_OK) {
+                if (status != expectedCode) {
                     throw new RuntimeException("发送POST请求失败：状态码" + status);
                 }
                 HttpEntity entity = response.getEntity();
                 if (entity == null) {
                     throw new RuntimeException("发送POST请求失败：返回为空");
+                }
+                if (expectedCode == HttpStatus.SC_CREATED) {
+                    return null;
                 }
                 return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
             } catch (Exception e) {
@@ -210,7 +222,7 @@ public class HttpUtils {
     /**
      * 发送get请求
      *
-     * @param url     url
+     * @param url url
      * @return response
      */
     public String get(String url, Pair<String, String> basicAuth) {
@@ -235,7 +247,7 @@ public class HttpUtils {
             HttpGet httpGet = new HttpGet(url);
             //
             if (basicAuth != null) {
-                headers.put("Authorization", "Basic " + Base64.getUrlEncoder().encodeToString((basicAuth.getLeft()+":"+basicAuth.getRight()).getBytes(StandardCharsets.UTF_8)));
+                headers.put("Authorization", "Basic " + Base64.getUrlEncoder().encodeToString((basicAuth.getLeft() + ":" + basicAuth.getRight()).getBytes(StandardCharsets.UTF_8)));
             }
             if (headers != null && !headers.isEmpty()) {
                 headers.forEach(httpGet::setHeader);
@@ -254,6 +266,46 @@ public class HttpUtils {
                 log.error("HttpUtils post called with url = {}, headers = {} occurred exception. Error message: {}",
                         url, headers, Throwables.getStackTraceAsString(e));
                 throw new RuntimeException("发送GET请求异常");
+            }
+        }
+    }
+
+    public String delete(String url, Pair<String, String> basicAuth, Integer expectedCode) {
+        try {
+            return innerDelete(url, new HashMap<>(), basicAuth, expectedCode);
+        } catch (IOException e) {
+            log.error("[HttpUtils] delete() called with Params: url = {}, basicAuth = {}, expectedCode = {}, Error message = {}",
+                    url, basicAuth, expectedCode, Throwables.getStackTraceAsString(e));
+            throw new BusinessException("发送DELETE请求异常：IOException");
+        }
+    }
+
+    private String innerDelete(String url, Map<String, String> headers, Pair<String, String> basicAuth, Integer expectedCode) throws IOException {
+        if (expectedCode == null) {
+            expectedCode = HttpStatus.SC_OK;
+        }
+        try (CloseableHttpClient http = httpClientBuilder.build()) {
+            HttpDelete httpDelete = new HttpDelete(url);
+            if (basicAuth != null) {
+                headers.put("Authorization", "Basic " + Base64.getUrlEncoder().encodeToString((basicAuth.getLeft() + ":" + basicAuth.getRight()).getBytes(StandardCharsets.UTF_8)));
+            }
+            if (headers != null && !headers.isEmpty()) {
+                headers.forEach(httpDelete::setHeader);
+            }
+            try (CloseableHttpResponse response = http.execute(httpDelete)) {
+                int status = response.getStatusLine().getStatusCode();
+                if (status != expectedCode) {
+                    throw new RuntimeException("发送DELETE请求失败：状态码" + status);
+                }
+                HttpEntity entity = response.getEntity();
+                if (entity == null) {
+                    throw new RuntimeException("发送DELETE请求失败：返回为空");
+                }
+                return EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                log.error("HttpUtils delete called with url = {}, headers = {} occurred exception. Error message: {}",
+                        url, headers, Throwables.getStackTraceAsString(e));
+                throw new RuntimeException("发送DELETE请求异常");
             }
         }
     }
