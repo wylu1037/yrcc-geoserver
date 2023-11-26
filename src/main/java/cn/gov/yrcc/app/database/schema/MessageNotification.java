@@ -24,8 +24,8 @@ public class MessageNotification {
     @GeneratedValue
     private Long id;
 
-    @Column(name = "category_id")
-    private Integer categoryId; // 消息类别
+    @Column(name = "category")
+    private String category; // 消息类别
 
     @Column(name = "message")
     private String message;

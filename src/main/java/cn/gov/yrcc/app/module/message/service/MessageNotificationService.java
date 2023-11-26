@@ -8,4 +8,6 @@ public interface MessageNotificationService {
     Page<MessageNotification> pages(Long userId, Integer page, Integer size);
 
     void  read(Long id);
+
+    void delete(Long id);
 }

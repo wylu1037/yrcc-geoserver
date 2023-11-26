@@ -26,4 +26,11 @@ public class MessageNotificationServiceImpl implements MessageNotificationServic
         messageNotification.setRead(true);
         messageNotificationRepository.save(messageNotification);
     }
+
+    @Override
+    public void delete(Long id) {
+        MessageNotification messageNotification = messageNotificationRepository.findById(id);
+        messageNotification.setDeleted(true);
+        messageNotificationRepository.save(messageNotification);
+    }
 }

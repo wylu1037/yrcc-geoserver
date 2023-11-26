@@ -3,11 +3,18 @@ package cn.gov.yrcc.app.module.message.repository.impl;
 import cn.gov.yrcc.app.database.schema.MessageNotification;
 import cn.gov.yrcc.app.module.message.repository.MessageNotificationRepository;
 import cn.gov.yrcc.internal.error.BusinessException;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.Nonnull;
+import java.io.Serial;
 import java.util.Optional;
 
 @Repository
@@ -22,7 +29,19 @@ public class MessageNotificationRepositoryImpl implements MessageNotificationRep
     @Override
     public Page<MessageNotification> pages(Long userId, Integer page, Integer size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return jpaMessageNotification.findAll(pageRequest);
+        Specification<MessageNotification> specification = new Specification<>() {
+            @Serial
+            private static final long serialVersionUID = 2968389488155384114L;
+
+            @Override
+            public Predicate toPredicate(
+                    @Nonnull Root<MessageNotification> root,
+                    @Nonnull CriteriaQuery<?> query,
+                    @Nonnull CriteriaBuilder cb) {
+                return cb.equal(root.get("deleted").as(Boolean.class), false);
+            }
+        };
+        return jpaMessageNotification.findAll(specification, pageRequest);
     }
 
     @Override
