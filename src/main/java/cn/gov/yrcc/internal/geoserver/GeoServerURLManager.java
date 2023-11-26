@@ -31,4 +31,8 @@ public class GeoServerURLManager {
     public String deleteWorkspace(String workspaceName) {
         return String.format("%s/rest/workspaces/%s", gsProperties.getUrl(), workspaceName);
     }
+
+    public String deleteDatastore(String workspaceName, String datastoreName) {
+        return String.format("%s/rest/workspaces/%s/datastores/%s", gsProperties.getUrl(), workspaceName, datastoreName);
+    }
 }
