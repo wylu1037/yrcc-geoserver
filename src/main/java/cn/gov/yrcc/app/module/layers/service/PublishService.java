@@ -4,5 +4,5 @@ import cn.gov.yrcc.app.module.layers.request.PublishTifRequest;
 
 public interface PublishService {
 
-    boolean publishTif(PublishTifRequest request);
+    void publishTif(PublishTifRequest request);
 }

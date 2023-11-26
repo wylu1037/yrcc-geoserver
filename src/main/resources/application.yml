@@ -5,6 +5,8 @@ server:
 spring:
   application:
     name: yrcc-geoserver
+  main:
+    lazy-initialization: false # 全局懒加载
   mvc:
     path match:
         matching-strategy: ant_path_matcher

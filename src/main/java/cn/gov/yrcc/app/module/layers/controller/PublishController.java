@@ -19,7 +19,7 @@ public class PublishController {
     }
 
     @PostMapping("/publish/tif")
-    public BaseResult<Object> publishTiffDelivery(@ModelAttribute PublishTifRequest request) {
+    public BaseResult<Void> publishTiffDelivery(@ModelAttribute PublishTifRequest request) {
         publishService.publishTif(request);
         return BaseResult.success();
     }
