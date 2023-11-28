@@ -4,6 +4,7 @@ import cn.gov.yrcc.app.database.schema.Workspace;
 import cn.gov.yrcc.app.module.workspaces.request.CreateWorkspaceRequest;
 import cn.gov.yrcc.app.module.workspaces.service.WorkspaceService;
 import cn.gov.yrcc.utils.base.BaseResult;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "工作空间")
 @RestController
 @RequestMapping(value = "/v1")
 public class WorkspaceController {

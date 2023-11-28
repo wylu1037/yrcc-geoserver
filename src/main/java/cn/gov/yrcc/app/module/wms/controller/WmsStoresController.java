@@ -2,12 +2,14 @@ package cn.gov.yrcc.app.module.wms.controller;
 
 import cn.gov.yrcc.app.module.wms.service.WmsStoresService;
 import cn.gov.yrcc.utils.base.BaseResult;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import it.geosolutions.geoserver.rest.decoder.RESTWmsStoreList;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Web Map Service Stores")
 @RestController
 @RequestMapping("/v1/wms")
 public class WmsStoresController {
