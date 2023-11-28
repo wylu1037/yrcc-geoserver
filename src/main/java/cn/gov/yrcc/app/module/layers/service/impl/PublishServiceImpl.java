@@ -7,13 +7,19 @@ import cn.gov.yrcc.app.database.schema.Workspace;
 import cn.gov.yrcc.app.module.datastores.repository.DatastoreRepository;
 import cn.gov.yrcc.app.module.layers.repository.LayerRepository;
 import cn.gov.yrcc.app.module.layers.request.PublishTifRequest;
+import cn.gov.yrcc.app.module.layers.response.CoverageResponse;
 import cn.gov.yrcc.app.module.layers.service.PublishService;
 import cn.gov.yrcc.app.module.message.repository.MessageNotificationRepository;
 import cn.gov.yrcc.app.module.workspaces.repository.WorkspaceRepository;
 import cn.gov.yrcc.internal.error.BusinessException;
 import cn.gov.yrcc.internal.error.GSErrorMessage;
+import cn.gov.yrcc.internal.geoserver.GeoServerURLManager;
+import cn.gov.yrcc.utils.http.HttpUtils;
+import cn.gov.yrcc.utils.json.JsonUtils;
 import com.google.common.base.Throwables;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
+import it.geosolutions.geoserver.rest.GeoServerRESTReader;
+import it.geosolutions.geoserver.rest.decoder.RESTLayer;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,14 +41,20 @@ public class PublishServiceImpl implements PublishService {
     private final DatastoreRepository datastoreRepository;
     private final MessageNotificationRepository messageNotificationRepository;
 	private final LayerRepository layerRepository;
+	private final GeoServerRESTReader geoServerRESTReader;
+	private final HttpUtils httpUtils;
+	private final GeoServerURLManager geoServerURLManager;
 
-    public PublishServiceImpl(GeoServerRESTPublisher geoServerRESTPublisher, WorkspaceRepository workspaceRepository, Executor fileThreadPool, DatastoreRepository datastoreRepository, MessageNotificationRepository messageNotificationRepository, LayerRepository layerRepository) {
+    public PublishServiceImpl(GeoServerRESTPublisher geoServerRESTPublisher, WorkspaceRepository workspaceRepository, Executor fileThreadPool, DatastoreRepository datastoreRepository, MessageNotificationRepository messageNotificationRepository, LayerRepository layerRepository, GeoServerRESTReader geoServerRESTReader, HttpUtils httpUtils, GeoServerURLManager geoServerURLManager) {
         this.geoServerRESTPublisher = geoServerRESTPublisher;
         this.workspaceRepository = workspaceRepository;
         this.fileThreadPool = fileThreadPool;
         this.datastoreRepository = datastoreRepository;
         this.messageNotificationRepository = messageNotificationRepository;
 		this.layerRepository = layerRepository;
+		this.geoServerRESTReader = geoServerRESTReader;
+		this.httpUtils = httpUtils;
+		this.geoServerURLManager = geoServerURLManager;
 	}
 
     @Override
@@ -98,7 +110,16 @@ public class PublishServiceImpl implements PublishService {
                         .createdAt(new Date())
                         .build());
 				// 查询并更新图层
+				RESTLayer resource = geoServerRESTReader.getLayer(request.getWorkspace(), request.getLayerName());
+				String url = resource.getResourceUrl().replace(".xml", ".json");
+				String json = httpUtils.get(url, geoServerURLManager.getBasicAuth());
+				CoverageResponse coverage = JsonUtils.toBean(json, CoverageResponse.class);
 				layer.setStatus("success");
+				layer.setCrs(coverage.getCoverage().getLatLonBoundingBox().getCrs());
+				layer.setMinx(coverage.getCoverage().getLatLonBoundingBox().getMinx());
+				layer.setMaxx(coverage.getCoverage().getLatLonBoundingBox().getMaxx());
+				layer.setMiny(coverage.getCoverage().getLatLonBoundingBox().getMiny());
+				layer.setMaxy(coverage.getCoverage().getLatLonBoundingBox().getMaxy());
 				layerRepository.save(layer);
 
 				// 发送成功的消息通知

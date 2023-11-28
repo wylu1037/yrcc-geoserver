@@ -43,6 +43,21 @@ public class Layer {
 	@Column(name = "status")
 	private String status;
 
+	@Column(name = "crs")
+	private String crs;
+
+	@Column(name = "minx")
+	private Double minx;
+
+	@Column(name = "maxx")
+	private Double maxx;
+
+	@Column(name = "miny")
+	private Double miny;
+
+	@Column(name = "maxy")
+	private Double maxy;
+
 	@Column(name = "enable")
 	private Boolean enable;
 
