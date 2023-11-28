@@ -1,22 +1,27 @@
 package cn.gov.yrcc.app.module.layers.service.impl;
 
+import cn.gov.yrcc.app.database.schema.Layer;
+import cn.gov.yrcc.app.module.layers.repository.LayerRepository;
 import cn.gov.yrcc.app.module.layers.service.LayerService;
 import it.geosolutions.geoserver.rest.GeoServerRESTManager;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;
 import it.geosolutions.geoserver.rest.decoder.RESTLayerList;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LayerServiceImpl implements LayerService {
 
-    private GeoServerRESTReader geoServerRESTReader;
+    private final GeoServerRESTReader geoServerRESTReader;
 
-    private GeoServerRESTManager geoServerRESTManager;
+    private final GeoServerRESTManager geoServerRESTManager;
+	private final LayerRepository layerRepository;
 
-    public LayerServiceImpl(GeoServerRESTReader geoServerRESTReader, GeoServerRESTManager geoServerRESTManager) {
+    public LayerServiceImpl(GeoServerRESTReader geoServerRESTReader, GeoServerRESTManager geoServerRESTManager, LayerRepository layerRepository) {
         this.geoServerRESTReader = geoServerRESTReader;
         this.geoServerRESTManager = geoServerRESTManager;
-    }
+		this.layerRepository = layerRepository;
+	}
 
     @Override
     public Object list() {
@@ -39,4 +44,9 @@ public class LayerServiceImpl implements LayerService {
         // &format=application/openlayers
         return geoServerRESTReader.getLayer(workspace, layerName);
     }
+
+	@Override
+	public Page<Layer> pages(Integer page, Integer size) {
+		return layerRepository.pages(page, size);
+	}
 }

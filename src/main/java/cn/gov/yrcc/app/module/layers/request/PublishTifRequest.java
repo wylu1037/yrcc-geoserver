@@ -34,6 +34,9 @@ public class PublishTifRequest implements Serializable {
     @Schema(description = "存储仓库名称")
     private String storeName;
 
+	@Schema(description = "发布图层的名称")
+	private String layerName;
+
     public File toTifFile() throws IOException {
         String filename = this.file.getOriginalFilename();
         if (StringUtils.isBlank(filename)) {
