@@ -1,0 +1,40 @@
+name: Github build yrcc-geoserver actions
+
+on:
+  push:
+    branches:
+      - "main"
+      - "release"
+      - "develop"
+
+jobs:
+  build_push_job:
+    name: Docker Build Job
+    runs-on: ubuntu-latest
+    steps:
+      # 签出代码
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # 准备QEMU
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      # 构建docker环境
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      # 登录DockerHub
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{secrets.DOCKERHUB_USERNAME}}
+          password: ${{secrets.DOCKERHUB_TOKEN}}
+
+      # 推送镜像到DockerHub
+      - name: Push image to DockerHub
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          tags: ${{secrets.DOCKERHUB_USERNAME}}/yrcc-geoserver:1.0
+          push: true
