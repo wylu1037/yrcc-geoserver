@@ -9,5 +9,5 @@ public interface LayerService {
 
     Object details(String workspace, String layerName);
 
-	Page<Layer> pages(Integer page, Integer size);
+	Page<Layer> pages(Integer page, Integer size, boolean filter);
 }

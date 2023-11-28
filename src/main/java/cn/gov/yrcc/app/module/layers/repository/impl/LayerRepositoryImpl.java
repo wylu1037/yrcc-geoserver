@@ -35,7 +35,7 @@ public class LayerRepositoryImpl implements LayerRepository {
 	}
 
 	@Override
-	public Page<Layer> pages(Integer page, Integer size) {
+	public Page<Layer> pages(Integer page, Integer size, boolean filter) {
 		PageRequest pageRequest = PageRequest.of(page, size, Sort.by("createdAt").descending());
 		Specification<Layer> specification = new Specification<>() {
 			@Serial
@@ -46,7 +46,11 @@ public class LayerRepositoryImpl implements LayerRepository {
 				@Nonnull Root<Layer> root,
 				@Nonnull CriteriaQuery<?> query,
 				@Nonnull CriteriaBuilder cb) {
-				return cb.equal(root.get("deleted").as(Boolean.class), false);
+				Predicate predicate = cb.equal(root.get("deleted").as(Boolean.class), false);
+				if (filter) {
+					predicate = cb.and(predicate, cb.not(root.get("status").in("success")));
+				}
+				return predicate;
 			}
 		};
 		return jpaLayer.findAll(specification, pageRequest);

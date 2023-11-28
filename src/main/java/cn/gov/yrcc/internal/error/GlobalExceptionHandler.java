@@ -16,6 +16,7 @@
 package cn.gov.yrcc.internal.error;
 
 import cn.gov.yrcc.utils.base.BaseResult;
+import com.google.common.base.Throwables;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -64,11 +65,15 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(value = BusinessException.class)
     public BaseResult<Object> businessExceptionCapture(Exception e) {
+		log.error("[GlobalExceptionHandler] businessExceptionCapture() called with Params: e = {}, Error message = {}",
+			e, Throwables.getStackTraceAsString(e));
         return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
 
     @ExceptionHandler(value = Throwable.class)
     public BaseResult<Object> throwableCapture(Throwable e) {
+		log.error("[GlobalExceptionHandler] throwableCapture() called with Params: e = {}, Error message = {}",
+			e, Throwables.getStackTraceAsString(e));
         return BaseResult.error(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
 }

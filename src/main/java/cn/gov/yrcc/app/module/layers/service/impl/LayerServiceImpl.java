@@ -46,7 +46,7 @@ public class LayerServiceImpl implements LayerService {
     }
 
 	@Override
-	public Page<Layer> pages(Integer page, Integer size) {
-		return layerRepository.pages(page, size);
+	public Page<Layer> pages(Integer page, Integer size, boolean filter) {
+		return layerRepository.pages(page, size, filter);
 	}
 }

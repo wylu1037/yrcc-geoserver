@@ -9,5 +9,5 @@ public interface LayerRepository {
 
 	Layer findByNameAndWorkspace(String name, String workspace);
 
-	Page<Layer> pages(Integer page, Integer size);
+	Page<Layer> pages(Integer page, Integer size, boolean filter);
 }
