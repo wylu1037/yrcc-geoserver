@@ -12,11 +12,11 @@ plugins {
 
 group = 'cn.gov.yrcc'
 description = 'yrcc-geoserver'
-version = '1.0-SNAPSHOT'
+version = '1.0'
 
 repositories {
     maven {
-        url = uri('http://192.168.1.20:8181/repository/maven-public/')
+        url = uri('http://maven.aliyun.com/nexus/content/groups/public/')
         allowInsecureProtocol = true
     }
     maven {
