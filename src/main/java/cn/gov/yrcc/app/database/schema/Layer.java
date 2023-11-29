@@ -61,6 +61,9 @@ public class Layer {
 	@Column(name = "enable")
 	private Boolean enable;
 
+	@Column(name = "size")
+	private String size;
+
 	@Column(name = "created_at", nullable = false, columnDefinition = "datetime default current_timestamp")
 	private Date createdAt;
 
