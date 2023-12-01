@@ -1,5 +1,6 @@
 package cn.gov.yrcc.internal.geoserver;
 
+import cn.gov.yrcc.internal.geoserver.properties.GSProperties;
 import it.geosolutions.geoserver.rest.GeoServerRESTManager;
 import it.geosolutions.geoserver.rest.GeoServerRESTPublisher;
 import it.geosolutions.geoserver.rest.GeoServerRESTReader;

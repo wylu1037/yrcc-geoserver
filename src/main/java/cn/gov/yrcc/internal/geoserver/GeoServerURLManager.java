@@ -1,5 +1,6 @@
 package cn.gov.yrcc.internal.geoserver;
 
+import cn.gov.yrcc.internal.geoserver.properties.GSProperties;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 

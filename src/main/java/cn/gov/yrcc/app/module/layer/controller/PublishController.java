@@ -1,5 +1,6 @@
 package cn.gov.yrcc.app.module.layer.controller;
 
+import cn.gov.yrcc.app.module.layer.request.PublishShpRequest;
 import cn.gov.yrcc.app.module.layer.request.PublishTifRequest;
 import cn.gov.yrcc.app.module.layer.service.PublishService;
 import cn.gov.yrcc.utils.base.BaseResult;
@@ -33,4 +34,15 @@ public class PublishController {
         publishService.publishTif(request);
         return BaseResult.success();
     }
+
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Successful operation"),
+		@ApiResponse(responseCode = "400", description = "Request failed")
+	})
+	@Operation(summary = "分页查询图层", method = "GET")
+	@PostMapping("/layer/publish/shp")
+	public BaseResult<Void> publishShpDelivery(@ModelAttribute PublishShpRequest request) {
+		publishService.publishShp(request);
+		return BaseResult.success();
+	}
 }

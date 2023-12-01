@@ -3,6 +3,7 @@ package cn.gov.yrcc.utils.json;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -105,4 +106,15 @@ public class JsonUtils {
         }
         return Collections.emptyMap();
     }
+
+	/**
+	 * convert object to map
+	 *
+	 * @param object object
+	 * @return Map
+	 */
+	public static Map<String, Object> objectToMap(Object object) {
+		return MAPPER.convertValue(object, new TypeReference<>() {
+		});
+	}
 }

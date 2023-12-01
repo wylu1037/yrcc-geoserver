@@ -26,6 +26,14 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  postgis:
+    dbtype: "postgis"
+    host: "192.168.1.115"
+    port: 5432
+    database: "gis"
+    schema: "public"
+    user: "postgres"
+    passwd: "postgres"
 
 logging:
   level:
