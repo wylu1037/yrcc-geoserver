@@ -1,6 +1,5 @@
 package cn.gov.yrcc.app.module.layer.service.impl;
 
-import cn.gov.yrcc.app.database.PostGisConfig;
 import cn.gov.yrcc.app.database.schema.Datastore;
 import cn.gov.yrcc.app.database.schema.Layer;
 import cn.gov.yrcc.app.database.schema.MessageNotification;
@@ -22,6 +21,7 @@ import cn.gov.yrcc.internal.constant.PublishLayerStatusEnum;
 import cn.gov.yrcc.internal.error.BusinessException;
 import cn.gov.yrcc.internal.error.GSErrorMessage;
 import cn.gov.yrcc.internal.geoserver.GeoServerBuilder;
+import cn.gov.yrcc.internal.properties.PostGisProperties;
 import cn.gov.yrcc.utils.file.FileCalculator;
 import cn.gov.yrcc.utils.file.FileDirectoryUtils;
 import cn.gov.yrcc.utils.file.ZipUtils;
@@ -33,6 +33,7 @@ import it.geosolutions.geoserver.rest.encoder.datastore.GSPostGISDatastoreEncode
 import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.geotools.data.DataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.jdbc.JDBCDataStore;
 import org.springframework.stereotype.Service;
@@ -56,12 +57,12 @@ public class PublishServiceImpl implements PublishService {
 	private final LayerRepository layerRepository;
 	private final CoverageService coverageService;
 	private final ShpService shpService;
-	private final PostGisConfig postGisConfig;
 	private final GeoServerRESTManager geoServerRESTManager;
 	private final GeoServerBuilder geoServerBuilder;
 	private final FeatureTypeService featureTypeService;
+	private final PostGisProperties properties;
 
-	public PublishServiceImpl(GeoServerRESTPublisher geoServerRESTPublisher, WorkspaceRepository workspaceRepository, Executor fileThreadPool, DatastoreRepository datastoreRepository, MessageNotificationRepository messageNotificationRepository, LayerRepository layerRepository, CoverageService coverageService, ShpService shpService, PostGisConfig postGisConfig, GeoServerRESTManager geoServerRESTManager, GeoServerBuilder geoServerBuilder, FeatureTypeService featureTypeService) {
+	public PublishServiceImpl(GeoServerRESTPublisher geoServerRESTPublisher, WorkspaceRepository workspaceRepository, Executor fileThreadPool, DatastoreRepository datastoreRepository, MessageNotificationRepository messageNotificationRepository, LayerRepository layerRepository, CoverageService coverageService, ShpService shpService, GeoServerRESTManager geoServerRESTManager, GeoServerBuilder geoServerBuilder, FeatureTypeService featureTypeService, PostGisProperties properties) {
 		this.geoServerRESTPublisher = geoServerRESTPublisher;
 		this.workspaceRepository = workspaceRepository;
 		this.fileThreadPool = fileThreadPool;
@@ -70,10 +71,10 @@ public class PublishServiceImpl implements PublishService {
 		this.layerRepository = layerRepository;
 		this.coverageService = coverageService;
 		this.shpService = shpService;
-		this.postGisConfig = postGisConfig;
 		this.geoServerRESTManager = geoServerRESTManager;
 		this.geoServerBuilder = geoServerBuilder;
 		this.featureTypeService = featureTypeService;
+		this.properties = properties;
 	}
 
 	@Override
@@ -213,12 +214,14 @@ public class PublishServiceImpl implements PublishService {
 
 	private void publishShp(File file, PublishShpRequest request) {
 		String path = null;
+		JDBCDataStore jdbcDataStore = null;
 		try {
 			path = ZipUtils.unzip(file, request.getLayerName());
 			FileDirectoryUtils.checkShpDirectory(path);
 
 			SimpleFeatureSource simpleFeatureSource = shpService.readFile(new File(path + File.separator + request.getLayerName() + ".shp"));
-			JDBCDataStore ds = shpService.createTable(postGisConfig.getJdbcDataStore(), simpleFeatureSource, null);
+			jdbcDataStore = (JDBCDataStore) DataStoreFinder.getDataStore(properties.toMap());
+			JDBCDataStore ds = shpService.createTable(jdbcDataStore, simpleFeatureSource, null);
 			shpService.write2db(ds, simpleFeatureSource);
 
 			String tableName = request.getLayerName();
@@ -240,6 +243,9 @@ public class PublishServiceImpl implements PublishService {
 			throw new BusinessException("发布shp失败");
 		} finally {
 			FileDirectoryUtils.delete(path);
+			if (jdbcDataStore != null) {
+				jdbcDataStore.dispose();
+			}
 		}
 	}
 

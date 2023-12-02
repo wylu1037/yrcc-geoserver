@@ -125,10 +125,12 @@ public class FileDirectoryUtils {
 	 *
 	 * @param folder 文件夹
 	 */
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public static void deleteFolder(File folder) {
 		if (folder.isDirectory()) {
 			File[] files = folder.listFiles();
 			if (files == null) {
+				folder.delete();
 				return;
 			}
 			for (File file : files) {
