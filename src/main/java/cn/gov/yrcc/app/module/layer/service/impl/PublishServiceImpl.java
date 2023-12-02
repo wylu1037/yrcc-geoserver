@@ -21,6 +21,7 @@ import cn.gov.yrcc.internal.error.GSErrorMessage;
 import cn.gov.yrcc.internal.geoserver.GeoServerBuilder;
 import cn.gov.yrcc.internal.properties.PostGisProperties;
 import cn.gov.yrcc.utils.file.FileCalculator;
+import cn.gov.yrcc.utils.file.FileDirectoryUtils;
 import cn.gov.yrcc.utils.file.ZipUtils;
 import com.google.common.base.Throwables;
 import it.geosolutions.geoserver.rest.GeoServerRESTManager;
@@ -81,7 +82,7 @@ public class PublishServiceImpl implements PublishService {
 			throw new BusinessException(GSErrorMessage.Workspace.NOT_EXISTS);
 		}
 		boolean exists = layerRepository.exists(request.getWorkspace(), request.getLayerName());
-		if (exists){
+		if (exists) {
 			throw new BusinessException(String.format("%s在工作空间下%s已存在", request.getWorkspace(), request.getLayerName()));
 		}
 
@@ -173,15 +174,12 @@ public class PublishServiceImpl implements PublishService {
 
 	@Override
 	public void publishShp(PublishShpRequest request) {
+		String path = null;
 		try {
-			File zipFile = request.toFile();
-			String path = ZipUtils.unzip(zipFile, request.getLayerName());
-			/*boolean valid = FileDirectoryUtils.isValidShp(path);
-			if (!valid) {
-				throw new BusinessException("无效的shp文件");
-			}*/
+			path = ZipUtils.unzip(request.toFile(), request.getLayerName());
+			FileDirectoryUtils.checkShpDirectory(path);
 
-			SimpleFeatureSource simpleFeatureSource = shpService.readFile(new File(path + File.separator +request.getLayerName()+ ".shp"));
+			SimpleFeatureSource simpleFeatureSource = shpService.readFile(new File(path + File.separator + request.getLayerName() + ".shp"));
 			JDBCDataStore ds = shpService.createTable((JDBCDataStore) dataStore, simpleFeatureSource, null);
 			shpService.write2db(ds, simpleFeatureSource);
 
@@ -196,12 +194,14 @@ public class PublishServiceImpl implements PublishService {
 			pds.setName(tableName);
 			pds.setSRS("EPSG:4326");
 			GSLayerEncoder layerEncoder = new GSLayerEncoder();
-			boolean publish = geoServerRESTManager.getPublisher().publishDBLayer(request.getWorkspace(), storeName,  pds,
+			boolean publish = geoServerRESTManager.getPublisher().publishDBLayer(request.getWorkspace(), storeName, pds,
 				layerEncoder);
 
 			System.out.println("publish " + publish);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
+		} finally {
+			FileDirectoryUtils.delete(path);
 		}
 	}
 }

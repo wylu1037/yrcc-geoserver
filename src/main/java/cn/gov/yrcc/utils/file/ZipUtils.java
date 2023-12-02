@@ -1,14 +1,13 @@
 package cn.gov.yrcc.utils.file;
 
 
-import cn.gov.yrcc.internal.error.BusinessException;
-import com.google.common.base.Throwables;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -16,34 +15,32 @@ import java.util.zip.ZipInputStream;
 public class ZipUtils {
 
 	@SuppressWarnings("ResultOfMethodCallIgnored")
-	public static String unzip(File zipFile, String layerName) {
-		String directoryPath = "/app/tmp/" + System.currentTimeMillis();
-		File targetDirectory = new File(directoryPath);
-		if (!targetDirectory.exists()) {
-			targetDirectory.mkdir();
+	public static String unzip(File srcFile, String layerName) throws Exception {
+		String destDirPath = "/app/tmp/" + System.currentTimeMillis();
+		if (!srcFile.exists()) {
+			throw new Exception(srcFile.getPath() + "所指文件不存在");
 		}
 
-		try (ZipInputStream zip = new ZipInputStream(new FileInputStream(zipFile))) {
-			ZipEntry zipEntry;
-			while ((zipEntry = zip.getNextEntry()) != null) {
-				String name = zipEntry.getName();
-				File file = new File(directoryPath + File.separator + name);
-				if (name.endsWith(File.separator)) {
+		try (ZipInputStream inputStream = new ZipInputStream(new FileInputStream(srcFile))) {
+			ZipEntry entry;
+			while ((entry = inputStream.getNextEntry()) != null) {
+				if (entry.isDirectory()) {
 					continue;
 				}
-				BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(file));
-				byte[] bytes = new byte[1024];
-				int num;
-				while ((num = zip.read(bytes, 0, bytes.length)) > 0) {
-					outputStream.write(bytes, 0, num);
+				File file = new File(destDirPath, entry.getName());
+				if (!file.exists()) {
+					new File(file.getParent()).mkdirs();
 				}
-				outputStream.close();
+				try (OutputStream out = new FileOutputStream(file); BufferedOutputStream bos = new BufferedOutputStream(out)) {
+					int len;
+					byte[] buf = new byte[1024];
+					while ((len = inputStream.read(buf)) != -1) {
+						bos.write(buf, 0, len);
+					}
+				}
 			}
-		} catch (Exception e) {
-			log.error("[ZipUtils] unzip() called with Params: zipFile = {}, layerName = {}, Error message = {}",
-				zipFile, layerName, Throwables.getStackTraceAsString(e));
-			throw new BusinessException("解压zip文件异常");
 		}
-		return directoryPath;
+		FileDirectoryUtils.rename(destDirPath, layerName);
+		return destDirPath;
 	}
 }
