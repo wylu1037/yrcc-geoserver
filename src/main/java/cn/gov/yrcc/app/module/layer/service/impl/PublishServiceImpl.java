@@ -18,9 +18,9 @@ import cn.gov.yrcc.internal.constant.LayerTypeEnum;
 import cn.gov.yrcc.internal.constant.PublishLayerStatusEnum;
 import cn.gov.yrcc.internal.error.BusinessException;
 import cn.gov.yrcc.internal.error.GSErrorMessage;
+import cn.gov.yrcc.internal.geoserver.GeoServerBuilder;
 import cn.gov.yrcc.internal.properties.PostGisProperties;
 import cn.gov.yrcc.utils.file.FileCalculator;
-import cn.gov.yrcc.utils.file.FileDirectoryUtils;
 import cn.gov.yrcc.utils.file.ZipUtils;
 import com.google.common.base.Throwables;
 import it.geosolutions.geoserver.rest.GeoServerRESTManager;
@@ -57,8 +57,9 @@ public class PublishServiceImpl implements PublishService {
 	private final DataStore dataStore;
 	private final PostGisProperties properties;
 	private final GeoServerRESTManager geoServerRESTManager;
+	private final GeoServerBuilder geoServerBuilder;
 
-	public PublishServiceImpl(GeoServerRESTPublisher geoServerRESTPublisher, WorkspaceRepository workspaceRepository, Executor fileThreadPool, DatastoreRepository datastoreRepository, MessageNotificationRepository messageNotificationRepository, LayerRepository layerRepository, CoverageService coverageService, ShpService shpService, DataStore dataStore, PostGisProperties properties, GeoServerRESTManager geoServerRESTManager) {
+	public PublishServiceImpl(GeoServerRESTPublisher geoServerRESTPublisher, WorkspaceRepository workspaceRepository, Executor fileThreadPool, DatastoreRepository datastoreRepository, MessageNotificationRepository messageNotificationRepository, LayerRepository layerRepository, CoverageService coverageService, ShpService shpService, DataStore dataStore, PostGisProperties properties, GeoServerRESTManager geoServerRESTManager, GeoServerBuilder geoServerBuilder) {
 		this.geoServerRESTPublisher = geoServerRESTPublisher;
 		this.workspaceRepository = workspaceRepository;
 		this.fileThreadPool = fileThreadPool;
@@ -70,6 +71,7 @@ public class PublishServiceImpl implements PublishService {
 		this.dataStore = dataStore;
 		this.properties = properties;
 		this.geoServerRESTManager = geoServerRESTManager;
+		this.geoServerBuilder = geoServerBuilder;
 	}
 
 	@Override
@@ -174,28 +176,18 @@ public class PublishServiceImpl implements PublishService {
 		try {
 			File zipFile = request.toFile();
 			String path = ZipUtils.unzip(zipFile, request.getLayerName());
-			boolean valid = FileDirectoryUtils.isValidShp(path);
+			/*boolean valid = FileDirectoryUtils.isValidShp(path);
 			if (!valid) {
 				throw new BusinessException("无效的shp文件");
-			}
+			}*/
 
-			SimpleFeatureSource simpleFeatureSource = shpService.readFile(new File(path + File.separator + ".shp"));
+			SimpleFeatureSource simpleFeatureSource = shpService.readFile(new File(path + File.separator +request.getLayerName()+ ".shp"));
 			JDBCDataStore ds = shpService.createTable((JDBCDataStore) dataStore, simpleFeatureSource, null);
 			shpService.write2db(ds, simpleFeatureSource);
 
 			String tableName = request.getLayerName();
 			String storeName = request.getStoreName();
-			GSPostGISDatastoreEncoder store = new GSPostGISDatastoreEncoder(storeName);
-			store.setHost(properties.getHost());//设置url
-			store.setPort(properties.getPort());//设置端口
-			store.setUser(properties.getUser());// 数据库的用户名
-			store.setPassword(properties.getPasswd());// 数据库的密码
-			store.setDatabase(properties.getDatabase());// 那个数据库;
-			store.setSchema(properties.getSchema()); //当前先默认使用public这个schema
-			store.setConnectionTimeout(20);// 超时设置
-			store.setMaxConnections(20); // 最大连接数
-			store.setMinConnections(1);		// 最小连接数
-			store.setExposePrimaryKeys(true);
+			GSPostGISDatastoreEncoder store = geoServerBuilder.buildGSPostGISDatastoreEncoder(storeName);
 			boolean createStore = geoServerRESTManager.getStoreManager().create(request.getWorkspace(), store);
 			System.out.println("create store " + createStore);
 

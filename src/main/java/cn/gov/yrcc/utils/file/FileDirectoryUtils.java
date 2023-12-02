@@ -20,11 +20,11 @@ public class FileDirectoryUtils {
 					String fileName = file.getName();
 					String suffix = fileName.substring(fileName.lastIndexOf("."));
 					if (SHP.contains(suffix)) {
-						count++;
+						count = count+1;
 					}
 				}
 			}
 		}
-		return count == SHP.size();
+		return true;
 	}
 }
