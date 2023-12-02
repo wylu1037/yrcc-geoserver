@@ -6,6 +6,7 @@ import com.google.common.base.Throwables;
 import lombok.extern.slf4j.Slf4j;
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
+import org.geotools.jdbc.JDBCDataStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +16,7 @@ import java.io.IOException;
 @Configuration
 public class PostGisConfig {
 
-	private PostGisProperties properties;
+	private final PostGisProperties properties;
 
 	public PostGisConfig(PostGisProperties properties) {
 		this.properties = properties;
@@ -28,6 +29,14 @@ public class PostGisConfig {
 		} catch (IOException e) {
 			log.error("[PostGisConfig] dataStore() called, Error message = {}", Throwables.getStackTraceAsString(e));
 			throw new BusinessException(String.format("连接空间数据库%s异常", properties.getDatabase()));
+		}
+	}
+
+	public JDBCDataStore getJdbcDataStore() {
+		try {
+			return (JDBCDataStore) DataStoreFinder.getDataStore(properties.toMap());
+		} catch (IOException e) {
+			throw new BusinessException("获取PostGis数据库连接异常");
 		}
 	}
 }

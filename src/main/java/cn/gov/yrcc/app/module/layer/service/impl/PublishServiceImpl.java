@@ -1,5 +1,6 @@
 package cn.gov.yrcc.app.module.layer.service.impl;
 
+import cn.gov.yrcc.app.database.PostGisConfig;
 import cn.gov.yrcc.app.database.schema.Datastore;
 import cn.gov.yrcc.app.database.schema.Layer;
 import cn.gov.yrcc.app.database.schema.MessageNotification;
@@ -32,7 +33,6 @@ import it.geosolutions.geoserver.rest.encoder.datastore.GSPostGISDatastoreEncode
 import it.geosolutions.geoserver.rest.encoder.feature.GSFeatureTypeEncoder;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.geotools.data.DataStore;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.jdbc.JDBCDataStore;
 import org.springframework.stereotype.Service;
@@ -56,12 +56,12 @@ public class PublishServiceImpl implements PublishService {
 	private final LayerRepository layerRepository;
 	private final CoverageService coverageService;
 	private final ShpService shpService;
-	private final DataStore dataStore;
+	private final PostGisConfig postGisConfig;
 	private final GeoServerRESTManager geoServerRESTManager;
 	private final GeoServerBuilder geoServerBuilder;
 	private final FeatureTypeService featureTypeService;
 
-	public PublishServiceImpl(GeoServerRESTPublisher geoServerRESTPublisher, WorkspaceRepository workspaceRepository, Executor fileThreadPool, DatastoreRepository datastoreRepository, MessageNotificationRepository messageNotificationRepository, LayerRepository layerRepository, CoverageService coverageService, ShpService shpService, DataStore dataStore, GeoServerRESTManager geoServerRESTManager, GeoServerBuilder geoServerBuilder, FeatureTypeService featureTypeService) {
+	public PublishServiceImpl(GeoServerRESTPublisher geoServerRESTPublisher, WorkspaceRepository workspaceRepository, Executor fileThreadPool, DatastoreRepository datastoreRepository, MessageNotificationRepository messageNotificationRepository, LayerRepository layerRepository, CoverageService coverageService, ShpService shpService, PostGisConfig postGisConfig, GeoServerRESTManager geoServerRESTManager, GeoServerBuilder geoServerBuilder, FeatureTypeService featureTypeService) {
 		this.geoServerRESTPublisher = geoServerRESTPublisher;
 		this.workspaceRepository = workspaceRepository;
 		this.fileThreadPool = fileThreadPool;
@@ -70,7 +70,7 @@ public class PublishServiceImpl implements PublishService {
 		this.layerRepository = layerRepository;
 		this.coverageService = coverageService;
 		this.shpService = shpService;
-		this.dataStore = dataStore;
+		this.postGisConfig = postGisConfig;
 		this.geoServerRESTManager = geoServerRESTManager;
 		this.geoServerBuilder = geoServerBuilder;
 		this.featureTypeService = featureTypeService;
@@ -218,7 +218,7 @@ public class PublishServiceImpl implements PublishService {
 			FileDirectoryUtils.checkShpDirectory(path);
 
 			SimpleFeatureSource simpleFeatureSource = shpService.readFile(new File(path + File.separator + request.getLayerName() + ".shp"));
-			JDBCDataStore ds = shpService.createTable((JDBCDataStore) dataStore, simpleFeatureSource, null);
+			JDBCDataStore ds = shpService.createTable(postGisConfig.getJdbcDataStore(), simpleFeatureSource, null);
 			shpService.write2db(ds, simpleFeatureSource);
 
 			String tableName = request.getLayerName();
@@ -243,6 +243,12 @@ public class PublishServiceImpl implements PublishService {
 		}
 	}
 
+	/**
+	 * 发布shp成功的处理动作
+	 *
+	 * @param layer   layer
+	 * @param request request
+	 */
 	private void onSuccessPublishShp(Layer layer, PublishShpRequest request) {
 		// 存储仓库
 		datastoreRepository.save(Datastore.builder()
@@ -275,6 +281,12 @@ public class PublishServiceImpl implements PublishService {
 			.build());
 	}
 
+	/**
+	 * 发布shp失败的处理动作
+	 *
+	 * @param layer layer
+	 * @return Void
+	 */
 	private Void onFailurePublishShp(Layer layer) {
 		// 更新状态
 		layer.setStatus(PublishLayerStatusEnum.failure.name());
