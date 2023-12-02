@@ -90,4 +90,9 @@ public class DatastoreRepositoryImpl implements DatastoreRepository {
 		};
 		return jpaDatastore.findAll(specification);
 	}
+
+	@Override
+	public Datastore findByWorkspaceAndName(String workspace, String name) {
+		return jpaDatastore.findByWorkspaceAndName(workspace, name);
+	}
 }

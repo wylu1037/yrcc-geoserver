@@ -18,4 +18,6 @@ public interface DatastoreRepository {
 	List<Datastore> findAll();
 
 	List<Datastore> findByWorkspace(String workspace);
+
+	Datastore findByWorkspaceAndName(String workspace, String name);
 }

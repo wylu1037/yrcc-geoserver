@@ -107,14 +107,24 @@ public class FileDirectoryUtils {
 		}
 	}
 
+	/**
+	 * 删除文件夹
+	 *
+	 * @param folderPath 文件夹路径
+	 */
 	public static void delete(String folderPath) {
 		if (StringUtils.isBlank(folderPath)) {
 			return;
 		}
- 		File folder = new File(folderPath);
+		File folder = new File(folderPath);
 		deleteFolder(folder);
 	}
 
+	/**
+	 * 删除文件夹
+	 *
+	 * @param folder 文件夹
+	 */
 	public static void deleteFolder(File folder) {
 		if (folder.isDirectory()) {
 			File[] files = folder.listFiles();

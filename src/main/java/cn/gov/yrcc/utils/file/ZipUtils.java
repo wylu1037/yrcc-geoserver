@@ -14,6 +14,13 @@ import java.util.zip.ZipInputStream;
 @Slf4j
 public class ZipUtils {
 
+	/**
+	 *
+	 * @param srcFile
+	 * @param layerName
+	 * @return
+	 * @throws Exception
+	 */
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public static String unzip(File srcFile, String layerName) throws Exception {
 		String destDirPath = "/app/tmp/" + System.currentTimeMillis();

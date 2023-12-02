@@ -42,7 +42,7 @@ public class PublishShpRequest implements Serializable {
 	@Schema(description = "发布图层的名称")
 	private String layerName;
 
-	public File toFile() {
+	public File toShpFile() {
 		String filename = this.file.getOriginalFilename();
 		if (StringUtils.isBlank(filename)) {
 			filename = "file.tif";
