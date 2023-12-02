@@ -14,4 +14,6 @@ public interface LayerRepository {
 	Page<Layer> pages(Integer page, Integer size, boolean filter);
 
 	boolean exists(String workspace, String name);
+
+	long count(Object ...status);
 }

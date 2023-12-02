@@ -82,4 +82,24 @@ public class LayerRepositoryImpl implements LayerRepository {
 		};
 		return jpaLayer.exists(specification);
 	}
+
+	@Override
+	public long count(Object... status) {
+		Specification<Layer> specification = new Specification<>() {
+
+			@Serial
+			private static final long serialVersionUID = 4972232895371292543L;
+
+			@Override
+			public Predicate toPredicate(
+				@Nonnull Root<Layer> root,
+				@Nonnull CriteriaQuery<?> query,
+				@Nonnull CriteriaBuilder cb) {
+				Predicate predicate = cb.equal(root.get("deleted").as(Boolean.class), false);
+				predicate = cb.and(predicate, root.get("status").in(status));
+				return predicate;
+			}
+		};
+		return jpaLayer.count(specification);
+	}
 }

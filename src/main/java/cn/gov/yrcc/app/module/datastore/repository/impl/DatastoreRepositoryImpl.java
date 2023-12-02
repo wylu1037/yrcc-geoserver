@@ -95,4 +95,9 @@ public class DatastoreRepositoryImpl implements DatastoreRepository {
 	public Datastore findByWorkspaceAndName(String workspace, String name) {
 		return jpaDatastore.findByWorkspaceAndName(workspace, name);
 	}
+
+	@Override
+	public long count() {
+		return jpaDatastore.count(((root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("deleted").as(Boolean.class), false)));
+	}
 }

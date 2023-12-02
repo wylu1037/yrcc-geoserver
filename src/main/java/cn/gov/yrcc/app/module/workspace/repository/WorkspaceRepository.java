@@ -16,4 +16,6 @@ public interface WorkspaceRepository {
     Page<Workspace> pages(int page, int size);
 
 	List<Workspace> findAll();
+
+	long count();
 }

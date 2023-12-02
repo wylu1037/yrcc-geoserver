@@ -49,4 +49,9 @@ public class WorkspaceRepositoryImpl implements WorkspaceRepository {
 	public List<Workspace> findAll() {
 		return jpaWorkspace.findAll();
 	}
+
+	@Override
+	public long count() {
+		return jpaWorkspace.count();
+	}
 }
