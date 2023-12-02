@@ -55,7 +55,7 @@ public class LayerRepositoryImpl implements LayerRepository {
 				if (filter) {
 					predicate = cb.and(predicate, cb.not(root.get("status").in("success")));
 				} else {
-					predicate = cb.and(predicate, cb.in(root.get("status").in("success")));
+					predicate = cb.and(predicate, root.get("status").in("success"));
 				}
 				return predicate;
 			}
