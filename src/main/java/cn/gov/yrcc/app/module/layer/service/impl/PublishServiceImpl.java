@@ -37,6 +37,7 @@ import org.geotools.data.DataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.jdbc.JDBCDataStore;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StopWatch;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -107,6 +108,8 @@ public class PublishServiceImpl implements PublishService {
 
 		// 提交异步上传任务
 		CompletableFuture.runAsync(() -> {
+			StopWatch watch = new StopWatch();
+			watch.start();
 			try {
 				boolean success;
 				success = geoServerRESTPublisher.publishGeoTIFF(request.getWorkspace(), request.getStoreName(), file);
@@ -115,7 +118,8 @@ public class PublishServiceImpl implements PublishService {
 					throw new BusinessException("文件存储发布失败");
 				} else {
 					// 存储仓库
-					onSuccessPublishTif(layer, request);
+					watch.stop();
+					onSuccessPublishTif(layer, request, watch);
 				}
 			} catch (FileNotFoundException e) {
 				log.error("[PublishServiceImpl] publishTif() called with Params: request = {}, Error message = {}",
@@ -125,7 +129,7 @@ public class PublishServiceImpl implements PublishService {
 		}, fileThreadPool).exceptionally(ex -> onFailurePublishTif(layer));
 	}
 
-	private void onSuccessPublishTif(Layer layer, PublishTifRequest request) {
+	private void onSuccessPublishTif(Layer layer, PublishTifRequest request, StopWatch watch) {
 		// 存储仓库
 		datastoreRepository.save(Datastore.builder()
 			.name(request.getStoreName())
@@ -144,6 +148,7 @@ public class PublishServiceImpl implements PublishService {
 		layer.setMaxx(coverage.getCoverage().getLatLonBoundingBox().getMaxx());
 		layer.setMiny(coverage.getCoverage().getLatLonBoundingBox().getMiny());
 		layer.setMaxy(coverage.getCoverage().getLatLonBoundingBox().getMaxy());
+		layer.setCost(watch.getTotalTimeMillis());
 		layerRepository.save(layer);
 
 		// 发送成功的消息通知
@@ -207,8 +212,11 @@ public class PublishServiceImpl implements PublishService {
 
 		// 提交异步任务
 		CompletableFuture.runAsync(() -> {
+			StopWatch watch = new StopWatch();
+			watch.start();
 			publishShp(file, request);
-			onSuccessPublishShp(layer, request);
+			watch.stop();
+			onSuccessPublishShp(layer, request, watch);
 		}, fileThreadPool).exceptionally(ex -> onFailurePublishShp(layer));
 	}
 
@@ -255,7 +263,7 @@ public class PublishServiceImpl implements PublishService {
 	 * @param layer   layer
 	 * @param request request
 	 */
-	private void onSuccessPublishShp(Layer layer, PublishShpRequest request) {
+	private void onSuccessPublishShp(Layer layer, PublishShpRequest request, StopWatch watch) {
 		// 存储仓库
 		datastoreRepository.save(Datastore.builder()
 			.name(request.getStoreName())
@@ -274,6 +282,7 @@ public class PublishServiceImpl implements PublishService {
 		layer.setMaxx(feature.getFeatureType().getLatLonBoundingBox().getMaxx());
 		layer.setMiny(feature.getFeatureType().getLatLonBoundingBox().getMiny());
 		layer.setMaxy(feature.getFeatureType().getLatLonBoundingBox().getMaxy());
+		layer.setCost(watch.getTotalTimeMillis());
 		layerRepository.save(layer);
 
 		// 发送成功的消息通知
