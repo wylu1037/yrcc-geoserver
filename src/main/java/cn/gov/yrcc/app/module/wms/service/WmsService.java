@@ -7,5 +7,7 @@ public interface WmsService {
 
     Object getLegendGraphic(String workspace, String layerName);
 
-	void getMap(HttpServletResponse response, DownloadLayerRequest request);
+	byte[] getMap(HttpServletResponse response, DownloadLayerRequest request);
+
+	void getMap2(HttpServletResponse response, DownloadLayerRequest request);
 }
