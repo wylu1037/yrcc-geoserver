@@ -20,4 +20,12 @@ public class GSErrorMessage {
 
         public static final String NOT_EXISTS = "存储仓库不存在";
     }
+
+	public static class Layer {
+		private Layer() {
+		}
+
+		public static final String NOT_EXISTS = "图层不存在";
+		public static final String DISABLED = "图层已被禁用";
+	}
 }
